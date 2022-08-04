@@ -4,6 +4,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import models
 from common.models import User
+
+
 # Create your models here.
 
 
@@ -26,6 +28,9 @@ class Message(models.Model):
     text = models.TextField()
     read = models.ManyToManyField(User, related_name='user_read')
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+
 
 
 @receiver(post_save, sender=Message)

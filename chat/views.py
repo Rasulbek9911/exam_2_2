@@ -7,6 +7,11 @@ from common.models import User
 from chat import serializers
 
 
+class ChatMessagesListView(generics.RetrieveAPIView):
+    queryset = Chat.objects.all()
+    serializer_class = serializers.ChatMessageSerializer
+
+
 class ChatListView(generics.ListAPIView):
     queryset = Chat.objects.all().annotate(
         last_message=Message.objects.filter(
@@ -15,7 +20,8 @@ class ChatListView(generics.ListAPIView):
             chat_id=models.OuterRef('id')).order_by('-created_at').values('created_at')[:1]
     )
     serializer_class = serializers.ChatListSerializer
-# .order_by("-messages__created_at").distinct()
+
+    # .order_by("-messages__created_at").distinct()
 
     def get_queryset(self):
         return self.queryset.filter(members=self.request.user).annotate(
@@ -23,8 +29,9 @@ class ChatListView(generics.ListAPIView):
             profile_image=models.Case(
                 models.When(is_group=True, then=models.F('avatar')),
                 models.When(is_group=False, then=User.objects.exclude(
-                    id=self.request.user.id).filter(chat__title=models.OuterRef('title')).values('avatar')[:1]),
-                default=models.Value('None image')
+                    id=self.request.user.id).filter(chat__id=models.OuterRef('id')).values('avatar')[:1]),
+                default=models.Value('None image'),
+                output_field=models.CharField()
 
             ),
             # profile title
@@ -37,8 +44,13 @@ class ChatListView(generics.ListAPIView):
             ),
             is_unmuted=models.Case(
                 models.When(unmuted=self.request.user, then=True),
-                default= False,
+                default=False,
+                output_field=models.BooleanField()
+            ),
+            is_pinned=models.Case(
+                models.When(pinned=self.request.user, then=True),
+                default=False,
                 output_field=models.BooleanField()
             )
 
-        )
+        ).distinct('id').order_by("-messages__created_at")

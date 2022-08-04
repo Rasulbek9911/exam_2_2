@@ -1,3 +1,4 @@
 from django.test import TestCase
 
-# Create your tests here.
+print(isinstance(True, int))
+print(isinstance(False, int))
