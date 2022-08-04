@@ -4,18 +4,9 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
 
-
-
 class ChatConsumer(WebsocketConsumer):
-    room_group_name = "clc"
-
-
     def connect(self):
-        # self.room_name = self.scope['url_route']['kwargs']['room_name']
-        # self.room_group_name = f'chat_{self.room_name}'
-        # self.room = Room.objects.get(name=self.room_name)
-
-        # connection has to be accepted
+        self.room_group_name = self.scope['user'].user_id
         self.accept()
 
         # join the room group
